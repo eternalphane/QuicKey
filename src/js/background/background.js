@@ -146,6 +146,8 @@ require([
 	let lastWindowID;
 	let lastUsedVersion;
 	let usePinyin;
+	let popupWindow;
+	let popupPort;
 
 
 	const addTab = debounce(({tabId}) => cp.tabs.get(tabId)
@@ -186,7 +188,7 @@ require([
 	}
 
 
-	function handleCommand(
+	async function handleCommand(
 		command)
 	{
 			// track whether the user is navigating farther back in the stack
@@ -207,6 +209,17 @@ require([
 
 			case "30-toggle-recent-tabs":
 				toggleRecentTabs(true);
+				break;
+
+			case "40-open-popup-window":
+				if (!popupWindow || popupWindow.closed) {
+					popupWindow = await openPopupWindow();
+				} else {
+					try {
+						popupWindow.focus();
+						popupPort.postMessage({ command: "selectDown" });
+					} catch (e) {}
+				}
 				break;
 		}
 	}
@@ -238,6 +251,23 @@ require([
 			.then(() => backgroundTracker.event("recents",
 				fromShortcut ? "toggle-shortcut" : "toggle"));
 	}
+
+
+	async function openPopupWindow()
+	{
+		const activeWindow = await cp.windows.getCurrent();
+		const {left: targetX, top: targetY, width: targetW, height: targetH} = activeWindow;
+		const widthAdjustment = 16;
+		const heightAdjustment = 39;
+		const width = 500 + widthAdjustment;
+		const height = 488 + heightAdjustment;
+		const left = targetX + Math.floor((targetW - width) / 2);
+		const top = targetY + Math.floor((targetH - height) / 2);
+		const options = `toolbar=0,left=${left},top=${top},innerWidth=${width},innerHeight=${height}`;
+
+		return window.open("popup.html", "quickey-popup", options, true);
+	}
+
 
 
 	function activateLastTab()
@@ -437,6 +467,7 @@ require([
 			// false here in case the user opens the menu before that happens.
 		gStartingUp = false;
 		popupIsOpen = true;
+		popupPort = port;
 
 		port.onMessage.addListener(message => {
 			closedByEsc = (message == "closedByEsc");
