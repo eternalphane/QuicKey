@@ -618,6 +618,8 @@ require([
 				.then(() => updateTabCount());
 		} else if (k.CurrentWindowLimitRecents.Key in message) {
 			currentWindowLimitRecents = message[k.CurrentWindowLimitRecents.Key];
+		} else if (k.PopupType.Key in message) {
+			popupWindow.type = message[k.PopupType.Key];
 		}
 	});
 
@@ -664,6 +666,7 @@ DEBUG && console.log(e);
 		.then(settings => {
 			showTabCount = settings[k.ShowTabCount.Key];
 			currentWindowLimitRecents = settings[k.CurrentWindowLimitRecents.Key];
+			popupWindow.type = settings[k.PopupType.Key];
 		})
 		.then(() => setNormalIcon())
 		.then(() => cp.tabs.query({}))
