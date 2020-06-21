@@ -86,6 +86,7 @@ define("popup/app", [
 		gotMRUKey: false,
 		mruModifier: "Alt",
 		resultsList: null,
+		searchBox: null,
 		settings: settings.getDefaults(),
 		settingsPromise: null,
 
@@ -716,6 +717,12 @@ define("popup/app", [
 				// selected after tabs are loaded
 			this.openedForSearch = focusSearch;
 
+				// regardless of whether the first item is selected or not, set
+				// the focus to the searchbox, in case the last time the window
+				// was open the user had clicked somewhere else.  without this,
+				// the focus would still be on that other element.
+			this.searchBox.focus();
+
 				// set these so that when the modifier key is released (it had
 				// to have been pressed for showWindow() to be called), it
 				// activates the selected item
@@ -758,6 +765,9 @@ define("popup/app", [
 
 
 		handleListRef: handleRef("resultsList"),
+
+
+		handleSearchBoxRef: handleRef("searchBox"),
 
 
 		onTabRemoved: function()
@@ -871,6 +881,7 @@ define("popup/app", [
 			return <div className={this.props.platform}>
 				<SearchBox
 					autoFocus
+					ref={this.handleSearchBoxRef}
 					mode={this.mode}
 					forceUpdate={this.forceUpdate}
 					selectAll={this.selectAllSearchBoxText}
@@ -890,6 +901,7 @@ define("popup/app", [
 					itemComponent={ResultsListItem}
 					mode={this.mode}
 					query={query}
+					visible={this.visible}
 					selectedIndex={selected}
 					setSelectedIndex={this.setSelectedIndex}
 					onItemClicked={this.openItem}
